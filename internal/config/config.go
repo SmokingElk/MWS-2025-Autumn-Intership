@@ -5,28 +5,24 @@ import (
 	"os"
 
 	"github.com/ilyakaznacheev/cleanenv"
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
+	CLIConfig    `yaml:"cli" env-required:"true"`
 	GithubConfig `yaml:"github" env-required:"true"`
+}
+
+type CLIConfig struct {
+	TimeoutSeconds int `yaml:"timeout_seconds" env-required:"true"`
 }
 
 type GithubConfig struct {
 	AuthToken string `yaml:"auth_token"`
 }
 
-func MustLoadConfig() *Config {
-	if os.Getenv("CONFIG_PATH") == "" {
-		if err := godotenv.Load(); err != nil {
-			log.Fatal("failed to load .env")
-		}
-	}
-
-	configPath := os.Getenv("CONFIG_PATH")
-
+func MustLoadConfig(configPath string) *Config {
 	if configPath == "" {
-		log.Fatal("CONFIG_PATH is not set")
+		log.Fatal("config-path is not set")
 	}
 
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {

@@ -5,8 +5,9 @@ go 1.24.3
 require (
 	github.com/google/go-github/v62 v62.0.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
-	github.com/joho/godotenv v1.5.1
 )
+
+require github.com/joho/godotenv v1.5.1 // indirect
 
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
