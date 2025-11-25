@@ -1,0 +1,5 @@
+github:
+  # optionally: add auth_token to increase limits
+
+cli:
+  timeout_seconds: 10
