@@ -8,16 +8,10 @@ type Module struct {
 	Direct  bool
 }
 
-func NewModule(name, versionStr string, direct bool) (Module, error) {
-	version, err := versionEntity.NewVersion(versionStr)
-
-	if err != nil {
-		return Module{}, err
-	}
-
+func NewModule(name string, version versionEntity.Version, direct bool) Module {
 	return Module{
 		Name:    name,
 		Version: version,
 		Direct:  direct,
-	}, nil
+	}
 }

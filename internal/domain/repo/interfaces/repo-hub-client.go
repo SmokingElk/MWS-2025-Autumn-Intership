@@ -7,5 +7,5 @@ import (
 )
 
 type RepoHubClient interface {
-	GetRepo(ctx context.Context, url string, builder func(gomod string) (entity.Repo, error)) (entity.Repo, error)
+	GetRepo(ctx context.Context, url string, builder func(gomod []byte) (entity.Repo, error)) (entity.Repo, error)
 }

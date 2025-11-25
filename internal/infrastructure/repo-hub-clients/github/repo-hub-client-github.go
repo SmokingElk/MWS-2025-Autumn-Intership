@@ -36,7 +36,7 @@ func NewRepoHubClientGithub(token string) interfaces.RepoHubClient {
 func (r *RepoHubClientGithub) GetRepo(
 	ctx context.Context,
 	url string,
-	builder func(gomod string) (repoEntity.Repo, error),
+	builder func(gomod []byte) (repoEntity.Repo, error),
 ) (repoEntity.Repo, error) {
 	if !strings.HasPrefix(url, urlPrefix) {
 		return repoEntity.Repo{}, repoErrors.ErrBadUrl
@@ -83,7 +83,7 @@ func (r *RepoHubClientGithub) GetRepo(
 		return repoEntity.Repo{}, repoErrors.ErrBadGomod
 	}
 
-	repo, err := builder(string(moduleFileContent))
+	repo, err := builder(moduleFileContent)
 
 	if err != nil {
 		if errors.Is(err, repoErrors.ErrBadGomod) {
