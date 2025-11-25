@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -36,8 +37,8 @@ func NewVersion(versionStr string) (Version, error) {
 
 	return Version{
 		major: partsInt[0],
-		minor: partsInt[0],
-		patch: partsInt[0],
+		minor: partsInt[1],
+		patch: partsInt[2],
 	}, nil
 }
 
@@ -57,4 +58,8 @@ func (v Version) Less(other Version) bool {
 	}
 
 	return v.patch < other.patch
+}
+
+func (v Version) String() string {
+	return fmt.Sprintf("v%d.%d.%d", v.major, v.minor, v.patch)
 }
