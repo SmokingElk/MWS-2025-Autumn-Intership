@@ -7,4 +7,5 @@ var (
 	ErrNotGoRepo    = errors.New("not go repo")
 	ErrBadGomod     = errors.New("bad gomod")
 	ErrBadUrl       = errors.New("bad url")
+	ErrUnknownHub   = errors.New("unknown repo hub")
 )
