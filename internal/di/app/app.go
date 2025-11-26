@@ -1,5 +1,9 @@
 package app
 
+import (
+	"io"
+)
+
 type App interface {
-	Serve() error
+	Serve(in io.Reader, out io.Writer) int
 }

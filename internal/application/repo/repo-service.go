@@ -90,7 +90,6 @@ func (s *RepoService) builder(showIndirect bool) func([]byte) (repoEntity.Repo, 
 				continue
 			}
 
-			fmt.Println(dependency.Mod.Version)
 			version, err := versionEntity.NewVersion(dependency.Mod.Version)
 
 			if err != nil {

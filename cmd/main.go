@@ -6,7 +6,6 @@ import (
 	"github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/config"
 	"github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/di"
 	"github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/di/flags"
-	exitcodes "github.com/SmokingElk/MWS-2025-Autumn-Intership/pkg/exit-codes"
 )
 
 func main() {
@@ -15,11 +14,7 @@ func main() {
 
 	app := di.MustConfigureApp(flags, cfg)
 
-	err := app.Serve()
+	exitCode := app.Serve(os.Stdin, os.Stdout)
 
-	if err == nil {
-		os.Exit(exitcodes.OK)
-	} else {
-		os.Exit(exitcodes.UnknownError)
-	}
+	os.Exit(exitCode)
 }

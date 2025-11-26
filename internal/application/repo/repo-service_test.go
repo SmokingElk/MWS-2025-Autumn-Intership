@@ -78,8 +78,8 @@ func TestGetRepoInfo(t *testing.T) {
 		{
 			what:              "repo not found",
 			url:               "https://github.com/Bob/not-existing-repo",
-			githubClientError: repoErrors.ErrNotGoRepo,
-			expectedError:     repoErrors.ErrNotGoRepo,
+			githubClientError: repoErrors.ErrRepoNotFound,
+			expectedError:     repoErrors.ErrRepoNotFound,
 		},
 
 		{
