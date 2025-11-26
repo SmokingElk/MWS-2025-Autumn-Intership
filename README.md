@@ -35,7 +35,7 @@ github.com/ilyakaznacheev/cleanenv | CURRENT    v0.5.0 | LAST    v1.5.0 | DIRECT
 github.com/stretchr/testify        | CURRENT   v1.11.0 | LAST   v1.11.1 | DIRECT
 ```
 
-*Примечание: в примерах запуска используется этот !(тестовый репозиторий)[https://github.com/SmokingElk/Update-Checker-Test]*
+*Примечание: в примерах запуска используется этот ![тестовый репозиторий](https://github.com/SmokingElk/Update-Checker-Test)*
 
 
 ## Использование
@@ -96,15 +96,15 @@ github.com/stretchr/testify
 - Настроены пайплайны GitHub Actions для автоматического запуска тестов и линтера перед слиянием `feature`-веток с `develop`.
 
 Технические решения:
-- Для работы с GitHub API использован следующий !(SDK)[https://pkg.go.dev/github.com/google/go-github/v62@v62.0.0/github].
+- Для работы с GitHub API использован следующий ![SDK](https://pkg.go.dev/github.com/google/go-github/v62@v62.0.0/github).
 - Информация о модуле, версии golang и используемых в репозитории зависимостях извлекается из файла `go.mod`. Для его разбора
-использован официальный !(модуль)[https://pkg.go.dev/golang.org/x/mod/modfile].
+использован официальный ![модуль](https://pkg.go.dev/golang.org/x/mod/modfile).
 - Приложение получает актуальные версии модулей при помощи API golang proxy.
 - Актуальность зависимости проверяется на основе сравнения частей *major*, *minor* и *patch* в версиях.
 - Для извлечения логики построения объекта репозитория из *Infrastructure*-слоя в *Application*-слой использован принцип *IOC*:
 в метод клиента передается описанный в слое бизнес-логики callback, который клиент вызывает и передает туда содержимое
 `go.mod` в случае его успешного считывания.
-- Для мокирования клиентов в тестах используется пакет !(gomock)[https://pkg.go.dev/github.com/golang/mock/gomock].
+- Для мокирования клиентов в тестах используется пакет ![gomock](https://pkg.go.dev/github.com/golang/mock/gomock).
 - `CLIAdapter` при запуске приложения получает объекты, реализующие интерфейсы `io.Reader` и `io.Writer`. При сборке приложения
 в качестве этих объектов передаются стандартные потоки ввода и вывода, а в тестах - буферы для мокирования пользовательского ввода
 и сравнения результата с ожидаемым.
