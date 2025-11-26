@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"strings"
+
 	moduleEntity "github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/domain/module/entity"
 	versionEntity "github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/domain/version/entity"
 )
@@ -12,6 +14,10 @@ type Repo struct {
 }
 
 func NewRepo(name, versionStr string) (Repo, error) {
+	if parts := strings.Split(versionStr, "."); len(parts) < 3 {
+		versionStr += ".0"
+	}
+
 	version, err := versionEntity.NewVersion(versionStr)
 
 	if err != nil {

@@ -11,7 +11,6 @@ import (
 	"time"
 
 	reposervice "github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/application/repo"
-	"github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/config"
 	"github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/di/flags"
 	moduleEntity "github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/domain/module/entity"
 	moduleMocks "github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/domain/module/mocks"
@@ -332,18 +331,16 @@ Nothing to update, dependency list is clean
 			repoService.AddHubClient("github.com", mockGithubClient)
 
 			help := false
+			timeout := 10
 			mockFlags := flags.Flags{
-				ShowIndirect: &tc.showIndirect,
-				Verbose:      &tc.verbose,
-				Help:         &help,
-				Url:          &tc.url,
+				ShowIndirect:   &tc.showIndirect,
+				Verbose:        &tc.verbose,
+				Help:           &help,
+				Url:            &tc.url,
+				TimeoutSeconds: &timeout,
 			}
 
-			cfg := config.CLIConfig{
-				TimeoutSeconds: 10,
-			}
-
-			cliAdapter := cli.NewCLIAdapter(repoService, &mockFlags, &cfg)
+			cliAdapter := cli.NewCLIAdapter(repoService, &mockFlags)
 
 			in := strings.NewReader(tc.input)
 			out := bytes.Buffer{}
@@ -366,6 +363,7 @@ func TestServe_Timeout(t *testing.T) {
 	url := "http://github.com/Bob/go-repo"
 	verbose := false
 	showIndirect := false
+	timeout := 1
 
 	expectedExitCode := exitcodes.TimeoutExceeded
 	expectedOutput := "Timeout exceeded\n"
@@ -395,17 +393,14 @@ func TestServe_Timeout(t *testing.T) {
 	repoService.AddHubClient("github.com", mockGithubClient)
 
 	mockFlags := flags.Flags{
-		ShowIndirect: &showIndirect,
-		Verbose:      &verbose,
-		Help:         &help,
-		Url:          &url,
+		ShowIndirect:   &showIndirect,
+		Verbose:        &verbose,
+		Help:           &help,
+		Url:            &url,
+		TimeoutSeconds: &timeout,
 	}
 
-	cfg := config.CLIConfig{
-		TimeoutSeconds: 1,
-	}
-
-	cliAdapter := cli.NewCLIAdapter(repoService, &mockFlags, &cfg)
+	cliAdapter := cli.NewCLIAdapter(repoService, &mockFlags)
 
 	in := strings.NewReader("")
 	out := bytes.Buffer{}

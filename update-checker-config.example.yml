@@ -1,5 +1,3 @@
 github:
-  # optionally: add auth_token to increase limits
-
-cli:
-  timeout_seconds: 10
+  # optionally: add token to increase limits
+  auth_token: your-github-token
