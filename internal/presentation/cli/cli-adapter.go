@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"net/url"
 	"sort"
 	"strings"
@@ -49,20 +50,20 @@ func (a *CLIAdapter) Serve(in io.Reader, out io.Writer) int {
 	urlStr := *a.flags.Url
 
 	if urlStr == "" {
-		fmt.Fprint(out, "Input repository url: ")
+		a.print(out, "Input repository url: ")
 
 		scanner := bufio.NewScanner(in)
 		scanner.Scan()
 		urlStr = strings.TrimSpace(scanner.Text())
 
 		if err := scanner.Err(); err != nil {
-			fmt.Fprintf(out, "Reader error: %s\n", err.Error())
+			a.print(out, fmt.Sprintf("Reader error: %s\n", err.Error()))
 			return exitcodes.UnknownError
 		}
 	}
 
 	if !a.isValidUrl(urlStr) {
-		fmt.Fprintf(out, "Invalid url: %s\n", urlStr)
+		a.print(out, fmt.Sprintf("Invalid url: %s\n", urlStr))
 		return exitcodes.BadURL
 	}
 
@@ -89,26 +90,24 @@ func (a *CLIAdapter) Serve(in io.Reader, out io.Writer) int {
 }
 
 func (a *CLIAdapter) printRepoInfo(repo repoEntity.Repo, upd []moduleEntity.Module, out io.Writer) {
-	fmt.Fprintln(out, repo.Name)
-	fmt.Fprintln(out, repo.Version)
+	a.print(out, fmt.Sprintln(repo.Name))
+	a.print(out, fmt.Sprintln(repo.Version))
 
 	for _, dependency := range upd {
-		fmt.Fprintln(out, dependency.Name)
+		a.print(out, fmt.Sprintln(dependency.Name))
 	}
 }
 
 func (a *CLIAdapter) printRepoInfoVerbose(repo repoEntity.Repo, upd []moduleEntity.Module, out io.Writer) {
-	fmt.Fprintf(
+	a.print(
 		out,
-		"\nMODULE: %s\nGO VERSION: %v\n",
-		repo.Name,
-		repo.Version,
+		fmt.Sprintf("\nMODULE: %s\nGO VERSION: %v\n", repo.Name, repo.Version),
 	)
 
-	fmt.Fprintln(out, sep)
+	a.print(out, fmt.Sprintln(sep))
 
 	if len(upd) == 0 {
-		fmt.Fprintln(out, nothingToUpdateText)
+		a.print(out, fmt.Sprintln(nothingToUpdateText))
 		return
 	}
 
@@ -126,14 +125,16 @@ func (a *CLIAdapter) printRepoInfoVerbose(repo repoEntity.Repo, upd []moduleEnti
 
 		currentVersion := repo.Dependencies[dependency.Name].Version
 
-		fmt.Fprintf(
+		a.print(
 			out,
-			"%-*s | CURRENT %9v | LAST %9v | %s\n",
-			depNameWidth,
-			dependency.Name,
-			currentVersion,
-			dependency.Version,
-			requireType,
+			fmt.Sprintf(
+				"%-*s | CURRENT %9v | LAST %9v | %s\n",
+				depNameWidth,
+				dependency.Name,
+				currentVersion,
+				dependency.Version,
+				requireType,
+			),
 		)
 	}
 }
@@ -141,25 +142,25 @@ func (a *CLIAdapter) printRepoInfoVerbose(repo repoEntity.Repo, upd []moduleEnti
 func (a *CLIAdapter) handleError(ctx context.Context, err error, url string, out io.Writer) int {
 	switch {
 	case errors.Is(err, repoErrors.ErrRepoNotFound):
-		fmt.Fprintln(out, "Repository is private or not found")
+		a.print(out, fmt.Sprintln("Repository is private or not found"))
 		return exitcodes.RepoNotFound
 	case errors.Is(err, repoErrors.ErrBadUrl):
-		fmt.Fprintf(out, "Invalid url: %s\n", url)
+		a.print(out, fmt.Sprintf("Invalid url: %s\n", url))
 		return exitcodes.BadURL
 	case errors.Is(err, repoErrors.ErrUnknownHub):
-		fmt.Fprintln(out, "Unknown repository hub")
+		a.print(out, fmt.Sprintln("Unknown repository hub"))
 		return exitcodes.UnknownHub
 	case errors.Is(err, repoErrors.ErrNotGoRepo):
-		fmt.Fprintln(out, "Not a go repo: go.mod not found")
+		a.print(out, fmt.Sprintln("Not a go repo: go.mod not found"))
 		return exitcodes.NotGoRepo
 	case errors.Is(err, repoErrors.ErrBadGomod):
-		fmt.Fprintln(out, "Failed to parse go.mod")
+		a.print(out, fmt.Sprintln("Failed to parse go.mod"))
 		return exitcodes.BadGoMod
 	case errors.Is(ctx.Err(), context.DeadlineExceeded):
-		fmt.Fprintln(out, "Timeout exceeded")
+		a.print(out, fmt.Sprintln("Timeout exceeded"))
 		return exitcodes.TimeoutExceeded
 	default:
-		fmt.Fprintf(out, "An error occured while getting repository info: %s\n", err.Error())
+		a.print(out, fmt.Sprintf("An error occurred while getting repository info: %s\n", err.Error()))
 		return exitcodes.UnknownError
 	}
 }
@@ -167,4 +168,10 @@ func (a *CLIAdapter) handleError(ctx context.Context, err error, url string, out
 func (a *CLIAdapter) isValidUrl(urlStr string) bool {
 	u, err := url.Parse(urlStr)
 	return err == nil && u.Scheme != "" && u.Hostname() != ""
+}
+
+func (a *CLIAdapter) print(out io.Writer, msg string) {
+	if _, err := out.Write([]byte(msg)); err != nil {
+		log.Fatal("failed to write to out")
+	}
 }

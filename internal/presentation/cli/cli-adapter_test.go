@@ -106,7 +106,7 @@ func TestServe(t *testing.T) {
 			url:               "https://github.com/Bob/repo",
 			githubClientError: errors.New("failed to get repo"),
 			expectedExitCode:  exitcodes.UnknownError,
-			expectedOutput:    "An error occured while getting repository info: failed to get repo from hub: failed to get repo\n",
+			expectedOutput:    "An error occurred while getting repository info: failed to get repo from hub: failed to get repo\n",
 		},
 
 		{
