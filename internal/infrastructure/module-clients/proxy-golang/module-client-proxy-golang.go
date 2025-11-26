@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	moduleEntity "github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/domain/module/entity"
@@ -33,7 +34,11 @@ func (c ModuleClientProxyGolang) GetLastVersion(
 		return versionEntity.Version{}, fmt.Errorf("failed to get module: %w", err)
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Fatal("failed to close response body")
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		switch resp.StatusCode {

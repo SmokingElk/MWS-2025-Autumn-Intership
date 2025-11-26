@@ -26,3 +26,7 @@ cover:
 	go test -coverprofile=cover.out -count=1 ./...
 	go tool cover -html=cover.out
 	DEL cover.out
+
+.PHONY: lint
+lint:
+	golangci-lint -v run ./...

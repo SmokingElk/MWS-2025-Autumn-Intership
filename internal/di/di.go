@@ -13,7 +13,7 @@ import (
 func MustConfigureApp(flags *flags.Flags, cfg *config.Config) app.App {
 	moduleClient := proxygolang.NewModuleProxyGolang()
 
-	githubClient := github.NewRepoHubClientGithub(cfg.GithubConfig.AuthToken)
+	githubClient := github.NewRepoHubClientGithub(cfg.AuthToken)
 
 	repoService := reposervice.NewRepoService(moduleClient)
 	repoService.AddHubClient("github.com", githubClient)
