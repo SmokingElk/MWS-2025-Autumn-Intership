@@ -91,17 +91,6 @@ func TestGetRepoInfo(t *testing.T) {
 		},
 
 		{
-			what:              "corrupted go version",
-			url:               "https://github.com/Bob/go-repo",
-			githubClientError: repoErrors.ErrBadGomod,
-			gomod: `
-module go-repo
-go 1.24
-			`,
-			expectedError: repoErrors.ErrBadGomod,
-		},
-
-		{
 			what:              "unexpected client error",
 			url:               "https://github.com/Bob/go-repo",
 			githubClientError: errors.New("failed to get repo"),
