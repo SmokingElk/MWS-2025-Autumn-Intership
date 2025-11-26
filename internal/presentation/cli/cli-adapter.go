@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/config"
 	"github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/di/app"
 	"github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/di/flags"
 	moduleEntity "github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/domain/module/entity"
@@ -29,13 +28,11 @@ const nothingToUpdateText = "Nothing to update, dependency list is clean"
 type CLIAdapter struct {
 	service interfaces.RepoService
 	flags   *flags.Flags
-	cfg     *config.CLIConfig
 }
 
-func NewCLIAdapter(service interfaces.RepoService, flags *flags.Flags, cfg *config.CLIConfig) app.App {
+func NewCLIAdapter(service interfaces.RepoService, flags *flags.Flags) app.App {
 	return &CLIAdapter{
 		flags:   flags,
-		cfg:     cfg,
 		service: service,
 	}
 }
@@ -67,7 +64,7 @@ func (a *CLIAdapter) Serve(in io.Reader, out io.Writer) int {
 		return exitcodes.BadURL
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(a.cfg.TimeoutSeconds)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.flags.TimeoutSeconds)*time.Second)
 	defer cancel()
 
 	repo, upd, err := a.service.GetRepoInfo(ctx, urlStr, *a.flags.ShowIndirect)

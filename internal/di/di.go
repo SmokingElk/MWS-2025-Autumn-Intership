@@ -18,7 +18,7 @@ func MustConfigureApp(flags *flags.Flags, cfg *config.Config) app.App {
 	repoService := reposervice.NewRepoService(moduleClient)
 	repoService.AddHubClient("github.com", githubClient)
 
-	app := cli.NewCLIAdapter(repoService, flags, &cfg.CLIConfig)
+	app := cli.NewCLIAdapter(repoService, flags)
 
 	return app
 }
