@@ -9,5 +9,5 @@ import (
 
 type RepoService interface {
 	AddHubClient(host string, client RepoHubClient)
-	GetRepoInfo(ctx context.Context, repoUrl string, showInderect bool) (repoEntity.Repo, []moduleEntity.Module, error)
+	GetRepoInfo(ctx context.Context, repoUrl string, showIndirect bool) (repoEntity.Repo, []moduleEntity.Module, error)
 }

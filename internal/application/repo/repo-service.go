@@ -36,7 +36,7 @@ func (s *RepoService) AddHubClient(host string, client repoInterfaces.RepoHubCli
 func (s *RepoService) GetRepoInfo(
 	ctx context.Context,
 	repoUrl string,
-	showInderect bool,
+	showIndirect bool,
 ) (repoEntity.Repo, []moduleEntity.Module, error) {
 	u, err := url.Parse(repoUrl)
 
@@ -52,7 +52,7 @@ func (s *RepoService) GetRepoInfo(
 		return repoEntity.Repo{}, nil, repoErrors.ErrUnknownHub
 	}
 
-	repo, err := hubClient.GetRepo(ctx, repoUrl, s.builder(showInderect))
+	repo, err := hubClient.GetRepo(ctx, repoUrl, s.builder(showIndirect))
 
 	if err != nil {
 		if errors.Is(err, repoErrors.ErrBadUrl) ||
@@ -66,16 +66,12 @@ func (s *RepoService) GetRepoInfo(
 		return repoEntity.Repo{}, nil, fmt.Errorf("failed to get repo from hub: %w", err)
 	}
 
-	dependenciesToUpdate, err := s.getDependenciesToUpdate(ctx, repo)
-
-	if err != nil {
-		return repoEntity.Repo{}, nil, fmt.Errorf("failed to get dependencies to update: %w", err)
-	}
+	dependenciesToUpdate := s.getDependenciesToUpdate(ctx, repo)
 
 	return repo, dependenciesToUpdate, nil
 }
 
-func (s *RepoService) builder(showInderect bool) func([]byte) (repoEntity.Repo, error) {
+func (s *RepoService) builder(showIndirect bool) func([]byte) (repoEntity.Repo, error) {
 	return func(content []byte) (repoEntity.Repo, error) {
 		file, err := modfile.Parse("go.mod", content, nil)
 
@@ -90,7 +86,7 @@ func (s *RepoService) builder(showInderect bool) func([]byte) (repoEntity.Repo, 
 		}
 
 		for _, dependency := range file.Require {
-			if !showInderect && dependency.Indirect {
+			if !showIndirect && dependency.Indirect {
 				continue
 			}
 
@@ -107,7 +103,7 @@ func (s *RepoService) builder(showInderect bool) func([]byte) (repoEntity.Repo, 
 	}
 }
 
-func (s *RepoService) getDependenciesToUpdate(ctx context.Context, repo repoEntity.Repo) ([]moduleEntity.Module, error) {
+func (s *RepoService) getDependenciesToUpdate(ctx context.Context, repo repoEntity.Repo) []moduleEntity.Module {
 	mtx := sync.Mutex{}
 	res := make([]moduleEntity.Module, 0)
 
@@ -142,5 +138,5 @@ func (s *RepoService) getDependenciesToUpdate(ctx context.Context, repo repoEnti
 
 	wg.Wait()
 
-	return res, nil
+	return res
 }

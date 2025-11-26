@@ -1,13 +1,15 @@
 package cli
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"net/url"
-	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/SmokingElk/MWS-2025-Autumn-Intership/internal/config"
@@ -37,33 +39,40 @@ func NewCLIAdapter(service interfaces.RepoService, flags *flags.Flags, cfg *conf
 	}
 }
 
-func (a *CLIAdapter) Serve() error {
+func (a *CLIAdapter) Serve(in io.Reader, out io.Writer) int {
 	if *a.flags.Help {
+		flag.CommandLine.SetOutput(out)
 		flag.Usage()
-		return nil
+		return exitcodes.OK
 	}
 
 	urlStr := *a.flags.Url
 
 	if urlStr == "" {
-		fmt.Print("Input repository url: ")
-		fmt.Scan(&urlStr)
+		fmt.Fprint(out, "Input repository url: ")
+
+		scanner := bufio.NewScanner(in)
+		scanner.Scan()
+		urlStr = strings.TrimSpace(scanner.Text())
+
+		if err := scanner.Err(); err != nil {
+			fmt.Fprintf(out, "Reader error: %s\n", err.Error())
+			return exitcodes.UnknownError
+		}
 	}
 
 	if !a.isValidUrl(urlStr) {
-		fmt.Printf("Invalid url: %s", urlStr)
-		os.Exit(exitcodes.BadURL)
-		return repoErrors.ErrBadUrl
+		fmt.Fprintf(out, "Invalid url: %s\n", urlStr)
+		return exitcodes.BadURL
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(a.cfg.TimeoutSeconds)*time.Second)
 	defer cancel()
 
-	repo, upd, err := a.service.GetRepoInfo(ctx, urlStr, *a.flags.ShowInderect)
+	repo, upd, err := a.service.GetRepoInfo(ctx, urlStr, *a.flags.ShowIndirect)
 
 	if err != nil {
-		a.handleError(ctx, err, urlStr)
-		return err
+		return a.handleError(ctx, err, urlStr, out)
 	}
 
 	sort.Slice(upd, func(i, j int) bool {
@@ -71,34 +80,35 @@ func (a *CLIAdapter) Serve() error {
 	})
 
 	if *a.flags.Verbose {
-		a.printRepoInfoVerbose(repo, upd)
+		a.printRepoInfoVerbose(repo, upd, out)
 	} else {
-		a.printRepoInfo(repo, upd)
+		a.printRepoInfo(repo, upd, out)
 	}
 
-	return nil
+	return exitcodes.OK
 }
 
-func (a *CLIAdapter) printRepoInfo(repo repoEntity.Repo, upd []moduleEntity.Module) {
-	fmt.Println(repo.Name)
-	fmt.Println(repo.Version)
+func (a *CLIAdapter) printRepoInfo(repo repoEntity.Repo, upd []moduleEntity.Module, out io.Writer) {
+	fmt.Fprintln(out, repo.Name)
+	fmt.Fprintln(out, repo.Version)
 
 	for _, dependency := range upd {
-		fmt.Println(dependency.Name)
+		fmt.Fprintln(out, dependency.Name)
 	}
 }
 
-func (a *CLIAdapter) printRepoInfoVerbose(repo repoEntity.Repo, upd []moduleEntity.Module) {
-	fmt.Printf(
+func (a *CLIAdapter) printRepoInfoVerbose(repo repoEntity.Repo, upd []moduleEntity.Module, out io.Writer) {
+	fmt.Fprintf(
+		out,
 		"\nMODULE: %s\nGO VERSION: %v\n",
 		repo.Name,
 		repo.Version,
 	)
 
-	fmt.Println(sep)
+	fmt.Fprintln(out, sep)
 
 	if len(upd) == 0 {
-		fmt.Println(nothingToUpdateText)
+		fmt.Fprintln(out, nothingToUpdateText)
 		return
 	}
 
@@ -111,12 +121,13 @@ func (a *CLIAdapter) printRepoInfoVerbose(repo repoEntity.Repo, upd []moduleEnti
 		requireType := "DIRECT"
 
 		if !dependency.Direct {
-			requireType = "INDERECT"
+			requireType = "INDIRECT"
 		}
 
 		currentVersion := repo.Dependencies[dependency.Name].Version
 
-		fmt.Printf(
+		fmt.Fprintf(
+			out,
 			"%-*s | CURRENT %9v | LAST %9v | %s\n",
 			depNameWidth,
 			dependency.Name,
@@ -127,29 +138,29 @@ func (a *CLIAdapter) printRepoInfoVerbose(repo repoEntity.Repo, upd []moduleEnti
 	}
 }
 
-func (a *CLIAdapter) handleError(ctx context.Context, err error, url string) {
+func (a *CLIAdapter) handleError(ctx context.Context, err error, url string, out io.Writer) int {
 	switch {
 	case errors.Is(err, repoErrors.ErrRepoNotFound):
-		fmt.Println("Repository is private or not found")
-		os.Exit(exitcodes.RepoNotFound)
+		fmt.Fprintln(out, "Repository is private or not found")
+		return exitcodes.RepoNotFound
 	case errors.Is(err, repoErrors.ErrBadUrl):
-		fmt.Printf("Invalid url: %s", url)
-		os.Exit(exitcodes.BadURL)
+		fmt.Fprintf(out, "Invalid url: %s\n", url)
+		return exitcodes.BadURL
 	case errors.Is(err, repoErrors.ErrUnknownHub):
-		fmt.Println("Unknown repository hub")
-		os.Exit(exitcodes.UnknownHub)
+		fmt.Fprintln(out, "Unknown repository hub")
+		return exitcodes.UnknownHub
 	case errors.Is(err, repoErrors.ErrNotGoRepo):
-		fmt.Println("Not a go repo: go.mod not found")
-		os.Exit(exitcodes.NotGoRepo)
+		fmt.Fprintln(out, "Not a go repo: go.mod not found")
+		return exitcodes.NotGoRepo
 	case errors.Is(err, repoErrors.ErrBadGomod):
-		fmt.Println("Failed to parse go.mod")
-		os.Exit(exitcodes.BadGoMod)
+		fmt.Fprintln(out, "Failed to parse go.mod")
+		return exitcodes.BadGoMod
 	case errors.Is(ctx.Err(), context.DeadlineExceeded):
-		fmt.Println("Timeout exceeded")
-		os.Exit(exitcodes.TimeoutExceeded)
+		fmt.Fprintln(out, "Timeout exceeded")
+		return exitcodes.TimeoutExceeded
 	default:
-		fmt.Printf("An error occured while getting repository info: %s\n", err.Error())
-		os.Exit(exitcodes.UnknownError)
+		fmt.Fprintf(out, "An error occured while getting repository info: %s\n", err.Error())
+		return exitcodes.UnknownError
 	}
 }
 
