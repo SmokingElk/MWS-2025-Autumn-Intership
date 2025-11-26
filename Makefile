@@ -4,7 +4,7 @@ run:
 
 .PHONY: build
 build:
-	go build -o ./update-checker.exe ./cmd/main.go
+	go build -o ./update-checker.out ./cmd/main.go
 
 .PHONY: mocks
 mocks:
@@ -25,7 +25,7 @@ test10:
 cover:
 	go test -coverprofile=cover.out -count=1 ./...
 	go tool cover -html=cover.out
-	DEL cover.out
+	rm cover.out
 
 .PHONY: lint
 lint:
