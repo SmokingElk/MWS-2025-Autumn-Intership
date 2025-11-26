@@ -59,7 +59,7 @@ func (a *CLIAdapter) Serve() error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(a.cfg.TimeoutSeconds)*time.Second)
 	defer cancel()
 
-	repo, upd, err := a.service.GetRepoInfo(ctx, urlStr, *a.flags.ShowInderect)
+	repo, upd, err := a.service.GetRepoInfo(ctx, urlStr, *a.flags.ShowIndirect)
 
 	if err != nil {
 		a.handleError(ctx, err, urlStr)
@@ -111,7 +111,7 @@ func (a *CLIAdapter) printRepoInfoVerbose(repo repoEntity.Repo, upd []moduleEnti
 		requireType := "DIRECT"
 
 		if !dependency.Direct {
-			requireType = "INDERECT"
+			requireType = "INDIRECT"
 		}
 
 		currentVersion := repo.Dependencies[dependency.Name].Version
