@@ -13,6 +13,14 @@ mocks:
 	mockgen -source=internal/domain/repo/interfaces/repo-hub-client.go \
 	-destination=internal/domain/repo/mocks/mock-repo-hub-client.go
 
+.PHONY: test
+test:
+	go test -v -count=1 ./...
+
+.PHONY: test10
+test10:
+	go test -v -count=10 ./...
+
 .PHONY: cover
 cover:
 	go test -coverprofile=cover.out -count=1 ./...
